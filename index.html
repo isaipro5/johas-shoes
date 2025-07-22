@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventario - Johas Shoes</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #e6e9f0 0%, #eef1f5 100%);
+      padding: 20px;
+      margin: 0;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+      font-weight: 700;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #3498db;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px 5px 0 0;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-size: 14px;
+    }
+    button:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+    }
+    .delete-btn {
+      background: #e74c3c;
+      padding: 6px 12px;
+      font-size: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    }
+    form, table {
+      background: #ffffff;
+      padding: 20px;
+      margin-top: 15px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border: 1px solid #dfe6e9;
+    }
+    input[type="text"], input[type="number"], input[type="file"] {
+      padding: 8px;
+      margin: 5px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid #dfe6e9;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border-color 0.3s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    input[readonly] {
+      background: #ecf0f1;
+      cursor: not-allowed;
+      border: 2px solid #b2bec3;
+      border-radius: 6px;
+      padding: 8px;
+      width: 100px;
+      text-align: center;
+      font-weight: 700;
+      color: #2c3e50;
+      font-size: 13px;
+    }
+    input[readonly]:hover {
+      background: #dfe6e9;
+    }
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .column { flex: 1; }
+    #preview {
+      margin-top: 10px;
+      max-width: 120px;
+      height: auto;
+      border-radius: 8px;
+      border: 2px solid #dfe6e9;
+    }
+    .tallas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .talla-item {
+      padding: 8px;
+      border-radius: 8px;
+      transition: transform 0.2s;
+    }
+    .talla-item:hover {
+      transform: scale(1.02);
+    }
+    .celeste { background: #a3bffa; }
+    .amarillo { background: #ffeaa7; }
+    .rosado { background: #fd79a8; }
+    .azul { background: #74b9ff; }
+    .talla-item label {
+      font-size: 13px;
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #dfe6e9;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #3498db;
+      color: white;
+      font-weight: 700;
+    }
+    img.producto-img {
+      width: 60px;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid #dfe6e9;
+    }
+    .tallas-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .tallas-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .totales-tabla {
+      background: #2c3e50;
+      color: white;
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 13px;
+    }
+    .form-group input:not([readonly]) {
+      flex: 1;
+    }
+
+    /* Estilos responsivos para móviles */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+      }
+      h2 {
+        font-size: 1.2em;
+      }
+      h3 {
+        font-size: 1em;
+      }
+      button {
+        padding: 8px 15px;
+        font-size: 13px;
+        width: 100%;
+        margin: 5px 0;
+      }
+      .delete-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+      form, table {
+        padding: 15px;
+        margin-top: 10px;
+      }
+      input[type="text"], input[type="number"], input[type="file"] {
+        padding: 7px;
+        font-size: 12px;
+      }
+      input[readonly] {
+        width: 80px;
+        padding: 7px;
+        font-size: 12px;
+      }
+      #preview {
+        max-width: 100px;
+      }
+      .tallas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 8px;
+      }
+      .talla-item label {
+        font-size: 12px;
+      }
+      table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      th, td {
+        padding: 6px;
+        min-width: 80px;
+      }
+      img.producto-img {
+        width: 50px;
+      }
+      .totales-tabla {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.2em;
+      }
+      button {
+        padding: 7px 12px;
+        font-size: 12px;
+      }
+      .delete-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+      input[type="text"], input[type="number"], input[type="file"] {
+        padding: 6px;
+        font-size: 11px;
+      }
+      input[readonly] {
+        width: 70px;
+        font-size: 11px;
+      }
+      #preview {
+        max-width: 80px;
+      }
+      .tallas-grid {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 6px;
+      }
+      .talla-item label {
+        font-size: 11px;
+      }
+      th, td {
+        padding: 5px;
+        min-width: 60px;
+      }
+      img.producto-img {
+        width: 40px;
+      }
+      .totales-tabla {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Inventario - Johas Shoes</h1>
+  <button onclick="mostrarFormulario()">+ Agregar Nuevo Producto</button>
+
+  <form id="formularioProducto" style="display:none;" onsubmit="agregarProducto(event)">
+    <h2>Nuevo Producto</h2>
+    <div class="row">
+      <div class="column">
+        <label>Imagen del producto (selecciona o pega con Ctrl+V)</label>
+        <input type="file" id="imagen" accept="image/*" onchange="previsualizarImagen()" required />
+        <img id="preview" src="" alt="Vista previa"/>
+      </div>
+      <div class="column">
+        <div class="form-group">
+          <label for="nombre">Nombre del producto</label>
+          <input type="text" id="nombre" required />
+        </div>
+        <div class="form-group">
+          <label for="totalParesProducto">Total Pares (Producto)</label>
+          <input type="number" id="totalParesProducto" value="0" readonly title="Total de pares del producto actual" />
+        </div>
+        <div class="form-group">
+          <label for="costo">Costo (S/)</label>
+          <input type="number" id="costo" step="0.01" min="0" required />
+        </div>
+        <div class="form-group">
+          <label for="totalCostoProducto">Total Costo (Producto)</label>
+          <input type="number" id="totalCostoProducto" value="0" readonly title="Costo total del producto actual (S/)" />
+        </div>
+      </div>
+    </div>
+    <h3>Tallas y Cantidades</h3>
+    <div class="tallas-grid" id="tallasContainer"></div>
+    <button type="submit">Guardar Producto</button>
+    <button type="button" onclick="generarPDF()">Generar PDF</button>
+  </form>
+
+  <div id="contenidoPDF">
+    <h2>Inventario de Productos</h2>
+    <table id="tablaProductos">
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th>Costo (S/)</th>
+          <th>Tallas</th>
+          <th>Total Pares</th>
+          <th>Subtotal (S/)</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="totales-tabla" id="totalesTabla">
+      Total Pares: 0 | Total: S/ 0.00
+    </div>
+  </div>
+
+  <script>
+    const tallas = Array.from({ length: 27 }, (_, i) => 19 + i);
+    const contenedorTallas = document.getElementById("tallasContainer");
+    let productos = [];
+    let pastedImage = null;
+
+    tallas.forEach(talla => {
+      const div = document.createElement("div");
+      div.className = "talla-item";
+      if (talla >= 19 && talla <= 24) div.classList.add("celeste");
+      else if (talla >= 25 && talla <= 33) div.classList.add("amarillo");
+      else if (talla >= 34 && talla <= 39) div.classList.add("rosado");
+      else if (talla >= 40 && talla <= 45) div.classList.add("azul");
+      div.innerHTML = `
+        <label>Talla ${talla}</label>
+        <input type="number" id="talla-${talla}" min="0" value="0" />
+      `;
+      contenedorTallas.appendChild(div);
+    });
+
+    tallas.forEach(talla => {
+      document.getElementById(`talla-${talla}`).addEventListener('input', actualizarTotalesFormulario);
+    });
+    document.getElementById('costo').addEventListener('input', actualizarTotalesFormulario);
+
+    document.addEventListener('paste', (event) => {
+      const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          pastedImage = blob;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            document.getElementById('preview').src = e.target.result;
+          };
+          reader.readAsDataURL(blob);
+          const fileInput = document.getElementById('imagen');
+          const dataTransfer = new DataTransfer();
+          dataTransfer.items.add(blob);
+          fileInput.files = dataTransfer.files;
+          event.preventDefault();
+          break;
+        }
+      }
+    });
+
+    function mostrarFormulario() {
+      document.getElementById("formularioProducto").style.display = "block";
+    }
+
+    function previsualizarImagen() {
+      const input = document.getElementById("imagen");
+      const preview = document.getElementById("preview");
+      if (input.files[0]) {
+        pastedImage = null;
+        const reader = new FileReader();
+        reader.onload = e => preview.src = e.target.result;
+        reader.readAsDataURL(input.files[0]);
+      } else {
+        preview.src = "";
+      }
+    }
+
+    function formatTallas(cantidades) {
+      let tallasList = [];
+      cantidades.forEach((cant, j) => {
+        if (cant > 0) tallasList.push(`T${tallas[j]}: ${cant}`);
+      });
+
+      let html = '<div class="tallas-container">';
+      let columns = Math.ceil(tallasList.length / 5);
+      for (let i = 0; i < columns; i++) {
+        html += '<div class="tallas-column">';
+        let start = i * 5;
+        let end = Math.min(start + 5, tallasList.length);
+        for (let j = start; j < end; j++) {
+          html += `<span>${tallasList[j]}</span>`;
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function actualizarTotalesFormulario() {
+      let totalPares = 0;
+      tallas.forEach(talla => {
+        const cantidad = parseInt(document.getElementById(`talla-${talla}`).value) || 0;
+        totalPares += cantidad;
+      });
+      const costo = parseFloat(document.getElementById("costo").value) || 0;
+      const totalCosto = (totalPares * costo).toFixed(2);
+
+      document.getElementById("totalParesProducto").value = totalPares;
+      document.getElementById("totalCostoProducto").value = totalCosto;
+    }
+
+    function actualizarTotalesTabla() {
+      const totalPares = productos.reduce((sum, p) => sum + p.cantidades.reduce((a, b) => a + b, 0), 0);
+      const totalGeneral = productos.reduce((sum, p) => sum + parseFloat(p.subtotal), 0).toFixed(2);
+      document.getElementById("totalesTabla").textContent = `Total Pares: ${totalPares} | Total: S/ ${totalGeneral}`;
+    }
+
+    function agregarProducto(e) {
+      e.preventDefault();
+      const nombre = document.getElementById("nombre").value;
+      const costo = parseFloat(document.getElementById("costo").value).toFixed(2);
+      const imagenInput = document.getElementById("imagen");
+      const file = imagenInput.files[0] || pastedImage;
+
+      if (!file) {
+        alert("Agrega una imagen del producto (selecciona o pega con Ctrl+V).");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const imgSrc = event.target.result;
+        let totalPares = 0;
+        const cantidades = tallas.map(talla => {
+          const cantidad = parseInt(document.getElementById(`talla-${talla}`).value) || 0;
+          if (cantidad > 0) totalPares += cantidad;
+          return cantidad;
+        });
+        const subtotal = (totalPares * costo).toFixed(2);
+        const producto = { nombre, costo: parseFloat(costo), cantidades, subtotal: parseFloat(subtotal), imagen: imgSrc };
+        productos.push(producto);
+
+        const detallesTallas = formatTallas(cantidades);
+        const fila = `
+          <tr data-index="${productos.length - 1}">
+            <td><img src="${imgSrc}" class="producto-img" alt="Producto"/></td>
+            <td>${nombre}</td>
+            <td>S/ ${costo}</td>
+            <td>${detallesTallas}</td>
+            <td>${totalPares}</td>
+            <td>S/ ${subtotal}</td>
+            <td><button class="delete-btn" onclick="eliminarProducto(${productos.length - 1})">Eliminar</button></td>
+          </tr>
+        `;
+        document.querySelector("#tablaProductos tbody").innerHTML += fila;
+
+        document.getElementById("formularioProducto").reset();
+        document.getElementById("preview").src = "";
+        document.getElementById("imagen").value = "";
+        pastedImage = null;
+        actualizarTotalesFormulario();
+        actualizarTotalesTabla();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function eliminarProducto(index) {
+      productos.splice(index, 1);
+      renderTabla();
+      actualizarTotalesTabla();
+    }
+
+    function renderTabla() {
+      const tbody = document.querySelector("#tablaProductos tbody");
+      tbody.innerHTML = "";
+      productos.forEach((p, i) => {
+        let totalPares = p.cantidades.reduce((a, b) => a + b, 0);
+        const detallesTallas = formatTallas(p.cantidades);
+        const fila = `
+          <tr data-index="${i}">
+            <td><img src="${p.imagen}" class="producto-img" alt="Producto"/></td>
+            <td>${p.nombre}</td>
+            <td>S/ ${p.costo.toFixed(2)}</td>
+            <td>${detallesTallas}</td>
+            <td>${totalPares}</td>
+            <td>S/ ${p.subtotal.toFixed(2)}</td>
+            <td><button class="delete-btn" onclick="eliminarProducto(${i})">Eliminar</button></td>
+          </tr>
+        `;
+        tbody.innerHTML += fila;
+      });
+      actualizarTotalesTabla();
+    }
+
+    function generarPDF() {
+      const tbody = document.querySelector("#tablaProductos tbody");
+      if (tbody.children.length === 0) {
+        alert("No hay productos para generar el PDF.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait" });
+
+      const pageWidth = 210;
+      const margin = 10;
+      const tableWidth = pageWidth - 2 * margin;
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(24);
+      doc.setTextColor(0, 0, 0);
+      doc.text("JOHAS SHOES", pageWidth / 2, 20, { align: "center" });
+      const fecha = new Date().toLocaleDateString();
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Fecha: ${fecha}`, pageWidth - margin - 30, 30);
+
+      let y = 40;
+      const colWidths = [25, 40, 20, 60, 20, 25];
+      const rowHeight = 20;
+      const tableX = margin;
+
+      doc.setFillColor(240, 240, 240);
+      doc.rect(tableX, y, tableWidth, rowHeight, "F");
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const headers = ["Imagen", "Nombre", "Costo (S/)", "Tallas", "Total Pares", "Subtotal (S/)"];
+      let x = tableX;
+      headers.forEach((header, i) => {
+        doc.rect(x, y, colWidths[i], rowHeight, "S");
+        doc.text(header, x + colWidths[i] / 2, y + 12, { align: "center" });
+        x += colWidths[i];
+      });
+      y += rowHeight;
+
+      productos.forEach((p, i) => {
+        x = tableX;
+        doc.setFillColor(255, 255, 255);
+        let cellHeight = rowHeight;
+
+        let tallasList = [];
+        p.cantidades.forEach((cant, j) => {
+          if (cant > 0) tallasList.push(`T${tallas[j]}: ${cant}`);
+        });
+        const columns = Math.ceil(tallasList.length / 5);
+        cellHeight = Math.max(rowHeight, Math.ceil(tallasList.length / columns) * 5);
+
+        doc.rect(tableX, y, tableWidth, cellHeight, "F");
+
+        doc.rect(x, y, colWidths[0], cellHeight, "S");
+        if (p.imagen) {
+          try {
+            doc.addImage(p.imagen, "JPEG", x + 2, y + 2, 21, cellHeight - 4);
+          } catch (err) {
+            doc.text("Sin imagen", x + 2, y + cellHeight / 2 + 3);
+          }
+        }
+        x += colWidths[0];
+
+        doc.rect(x, y, colWidths[1], cellHeight, "S");
+        doc.text(p.nombre, x + colWidths[1] / 2, y + cellHeight / 2 + 3, { align: "center", maxWidth: colWidths[1] - 4 });
+        x += colWidths[1];
+
+        doc.rect(x, y, colWidths[2], cellHeight, "S");
+        doc.text(`S/ ${p.costo.toFixed(2)}`, x + colWidths[2] / 2, y + cellHeight / 2 + 3, { align: "center" });
+        x += colWidths[2];
+
+        doc.rect(x, y, colWidths[3], cellHeight, "S");
+        for (let col = 0; col < columns; col++) {
+          let start = col * 5;
+          let end = Math.min(start + 5, tallasList.length);
+          let columnText = "";
+          for (let j = start; j < end; j++) {
+            columnText += `${tallasList[j]}\n`;
+          }
+          doc.text(columnText, x + (col * (colWidths[3] / columns)) + 2, y + 5, { align: "left" });
+        }
+        x += colWidths[3];
+
+        doc.rect(x, y, colWidths[4], cellHeight, "S");
+        const totalPares = p.cantidades.reduce((a, b) => a + b, 0);
+        doc.text(`${totalPares}`, x + colWidths[4] / 2, y + cellHeight / 2 + 3, { align: "center" });
+        x += colWidths[4];
+
+        doc.rect(x, y, colWidths[5], cellHeight, "S");
+        doc.text(`S/ ${p.subtotal.toFixed(2)}`, x + colWidths[5] / 2, y + cellHeight / 2 + 3, { align: "center" });
+
+        y += cellHeight;
+        if (y > 260) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+
+      const totalPares = productos.reduce((sum, p) => sum + p.cantidades.reduce((a, b) => a + b, 0), 0);
+      const totalPrecio = productos.reduce((sum, p) => sum + parseFloat(p.subtotal), 0);
+
+      if (y > 240) {
+        doc.addPage();
+        y = 20;
+      }
+
+      const summaryX = margin;
+      const summaryWidth = tableWidth;
+      const summaryHeight = 20;
+      doc.setFillColor(0, 0, 0);
+      doc.rect(summaryX, 270, summaryWidth, summaryHeight, "F");
+      doc.rect(summaryX, 270, summaryWidth, summaryHeight, "S");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(12);
+      doc.text(`Total Pares: ${totalPares} | Total: S/ ${totalPrecio.toFixed(2)}`, pageWidth / 2, 282, { align: "center" });
+
+      doc.save("reporte_productos.pdf");
+    }
+  </script>
+</body>
+</html>
